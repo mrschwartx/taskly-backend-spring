@@ -23,7 +23,7 @@ docker/ps:
 	$(COMPOSE) ps
 
 docker/seed:
-	$(COMPOSE) exec taskly-backend node src/scripts/seed.js
+	$(COMPOSE) exec taskly-backend java -jar app.jar --spring.main.web-application-type=none --taskly.seed.enabled=true
 
 docker/clean:
 	$(COMPOSE) down -v --rmi local

@@ -1,22 +1,21 @@
-FROM node:22-alpine AS base
-WORKDIR /app
+FROM maven:3.9-eclipse-temurin-25 AS build
+WORKDIR /build
+COPY pom.xml ./
+RUN mvn -B -ntp -q dependency:go-offline
+COPY src ./src
+RUN mvn -B -ntp -q -DskipTests package
 
-FROM base AS deps
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
-
-FROM base AS runner
-ENV NODE_ENV=production \
-    APP_HOST=0.0.0.0 \
+FROM eclipse-temurin:25-jre-alpine AS runner
+ENV APP_HOST=0.0.0.0 \
     APP_PORT=8080 \
-    LOG_TO_FILE=false
-COPY --from=deps --chown=node:node /app/node_modules ./node_modules
-COPY --chown=node:node package.json ./
-COPY --chown=node:node src ./src
-COPY --chown=node:node public ./public
-RUN mkdir -p public/images/users && chown -R node:node public
-USER node
+    LOG_FILE=
+WORKDIR /app
+RUN addgroup -S taskly && adduser -S -G taskly taskly
+COPY --from=build --chown=taskly:taskly /build/target/taskly-backend.jar ./app.jar
+COPY --chown=taskly:taskly public ./public
+RUN mkdir -p public/images/users && chown -R taskly:taskly /app
+USER taskly
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD wget -qO- http://127.0.0.1:8080/ || exit 1
-CMD ["node", "src/main.js"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
