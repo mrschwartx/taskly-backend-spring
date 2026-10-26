@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
 	private static final Map<String, HttpStatus> STATUS_BY_CODE = Map.of(
 			"VALIDATION_ERROR", HttpStatus.BAD_REQUEST,
 			"NOT_FOUND", HttpStatus.NOT_FOUND,
-			"ALREADY_EXISTS", HttpStatus.UNPROCESSABLE_ENTITY,
+			"ALREADY_EXISTS", HttpStatus.UNPROCESSABLE_CONTENT,
 			"AUTHENTICATION_FAILED", HttpStatus.UNAUTHORIZED,
 			"FORBIDDEN", HttpStatus.FORBIDDEN);
 
